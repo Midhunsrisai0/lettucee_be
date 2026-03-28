@@ -3,12 +3,22 @@ import { HTTPException } from "hono/http-exception";
 import { cors } from "hono/cors";
 import type { AppBindings } from "./types/env";
 import { apiRoutes } from "./routes";
+import type { Context } from "hono";
 
 const app = new Hono<{ Bindings: AppBindings }>();
 
 app.use("*", cors());
 
 app.route("/", apiRoutes);
+
+app.get("/hi-there", (c: Context<{ Bindings: AppBindings }>) => {
+  return c.json(
+    {
+      pong: "i am fine, thank you for asking",
+    },
+    200,
+  );
+});
 
 app.notFound((c) =>
   c.json(
