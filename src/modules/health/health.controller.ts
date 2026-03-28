@@ -7,6 +7,7 @@ export const healthCheck = (c: Context<{ Bindings: AppBindings }>) => {
     path: c.req.path,
     env: c.env.APP_ENV,
     timestamp: new Date().toISOString(),
+    status: "ok",
   });
 
   return c.json(
