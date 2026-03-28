@@ -8,6 +8,13 @@
       "when": 1774697524605,
       "tag": "0000_awesome_thor_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1774698193363,
+      "tag": "0001_magenta_guardsmen",
+      "breakpoints": true
     }
   ]
 }

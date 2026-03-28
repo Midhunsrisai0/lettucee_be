@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const USER_STATUS = {
   PENDING: "PENDING",
@@ -35,6 +35,7 @@ export const users = sqliteTable("users", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   lastLoginAt: text("last_login_at"),
+  isAdmin: integer("is_admin", { mode: "boolean" }).notNull().default(false),
 });
 
 export type User = typeof users.$inferSelect;
