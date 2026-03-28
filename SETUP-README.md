@@ -6,6 +6,10 @@ If you are new to Cloudflare Workers, read this once and follow the commands exa
 
 ---
 
+## 0) GIT BASE BRANCH
+
+- `main`
+
 ## 1) Tech stack
 
 - Runtime: Cloudflare Workers
