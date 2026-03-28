@@ -1,0 +1,29 @@
+{
+  "name": "lettucee-be",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply lettucee-db --local",
+    "db:query:local": "wrangler d1 execute lettucee-db --local --command",
+    "db:query:remote": "wrangler d1 execute lettucee-db --remote --command",
+    "db:tables:local": "wrangler d1 execute lettucee-db --local --command \"SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;\"",
+    "db:users:local": "wrangler d1 execute lettucee-db --local --command \"SELECT id, email, status, created_at FROM users ORDER BY created_at DESC;\""
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44.5",
+    "hono": "^4.7.10",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260317.1",
+    "drizzle-kit": "^0.31.4",
+    "typescript": "^5.8.2",
+    "wrangler": "^4.8.0"
+  }
+}

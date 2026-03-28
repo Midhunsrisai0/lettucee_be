@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lettucee-be",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-03-28",
+  "observability": {
+    "enabled": true,
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "lettucee-db",
+      "database_id": "1965b5cc-6556-4818-9daf-795243781fae",
+    },
+  ],
+  "vars": {
+    "APP_NAME": "lettucee-be",
+    "APP_ENV": "development",
+  },
+}
