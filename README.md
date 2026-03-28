@@ -25,10 +25,16 @@ npx wrangler d1 create lettucee-db
 
 2. Replace `database_id` in [wrangler.jsonc](wrangler.jsonc).
 
-3. Run initial migration:
+3. Apply migrations:
 
 ```bash
-npx wrangler d1 execute lettucee-db --file=./migrations/0001_init.sql
+npm run db:migrate:local
+```
+
+If you already created the remote D1 and want to apply remotely:
+
+```bash
+npx wrangler d1 migrations apply lettucee-db --remote
 ```
 
 ## 3) Run locally
@@ -55,7 +61,7 @@ npm run db:migrate:local
 4. After verifying locally, apply to remote D1:
 
 ```bash
-npm run db:migrate:remote
+npx wrangler d1 migrations apply lettucee-db --remote
 ```
 
 ## Local D1: view data and run manual SQL

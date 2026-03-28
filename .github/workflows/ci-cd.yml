@@ -32,7 +32,7 @@ jobs:
         run: |
           npm run db:generate
           if [[ -n "$(git status --porcelain migrations)" ]]; then
-            echo "Generated migration changes detected. Please run 'npm run db:generate' locally and commit migrations/."
+            echo "Generated migration changes detected. Run 'npm run db:generate' locally and commit both migrations/*.sql and migrations/meta/*."
             git status --short migrations
             exit 1
           fi

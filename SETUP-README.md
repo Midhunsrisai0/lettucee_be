@@ -129,7 +129,7 @@ Typical pipeline:
 1. Checkout
 2. Install dependencies
 3. Typecheck / tests
-4. `npm run db:migrate:remote`
+4. `npx wrangler d1 migrations apply lettucee-db --remote`
 5. `npm run deploy`
 
 CI authenticates with Cloudflare using secrets (API token + account id), not personal local login.
