@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
+    "dev:lan": "wrangler dev --ip 0.0.0.0 --port 8787",
+    "dev:lan:https": "wrangler dev --ip 0.0.0.0 --port 8787 --local-protocol https",
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck",
