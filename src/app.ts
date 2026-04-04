@@ -13,8 +13,11 @@ app.route("/", apiRoutes);
 app.notFound((c) =>
   c.json(
     {
-      error: "Not Found",
-      path: c.req.path,
+      code: 404,
+      message: "Not Found",
+      data: {
+        path: c.req.path,
+      },
     },
     404,
   ),
@@ -24,14 +27,23 @@ app.onError((err, c) => {
   if (err instanceof HTTPException) {
     return c.json(
       {
-        error: err.message,
+        code: err.status,
+        message: err.message,
+        data: null,
       },
       err.status,
     );
   }
 
   console.error("Unhandled error", err);
-  return c.json({ error: "Internal Server Error" }, 500);
+  return c.json(
+    {
+      code: 500,
+      message: "Internal Server Error",
+      data: null,
+    },
+    500,
+  );
 });
 
 export { app };
