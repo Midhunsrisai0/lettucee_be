@@ -81,6 +81,7 @@ export const usersRepository = {
       phoneNumber: string;
       username: string;
       passwordHash: string;
+      phoneHash: string;
       nowIso: string;
     },
   ): Promise<void> {
@@ -91,6 +92,7 @@ export const usersRepository = {
       phoneNumber: input.phoneNumber,
       username: input.username,
       passwordHash: input.passwordHash,
+      phoneHash: input.phoneHash,
       status: USER_STATUS.PENDING,
       createdAt: input.nowIso,
       updatedAt: input.nowIso,
@@ -109,6 +111,7 @@ export const usersRepository = {
         status: users.status,
         createdAt: users.createdAt,
         hasSuperAccess: users.hasSuperAccess,
+        isAdmin: users.isAdmin,
       })
       .from(users)
       .where(eq(users.status, USER_STATUS.APPROVED))
@@ -131,4 +134,34 @@ export const usersRepository = {
       })
       .where(eq(users.id, userId));
   },
+
+  async findById(
+    c: Context<{ Bindings: AppBindings }>,
+    userId: string,
+  ): Promise<User | null> {
+    const db = getDrizzleDb(c);
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    return result[0] ?? null;
+  },
+
+  async approveById(
+    c: Context<{ Bindings: AppBindings }>,
+    userId: string,
+    nowIso: string,
+  ): Promise<void> {
+    const db = getDrizzleDb(c);
+    await db
+      .update(users)
+      .set({
+        status: USER_STATUS.APPROVED,
+        updatedAt: nowIso,
+      })
+      .where(eq(users.id, userId));
+  },
 };
+

@@ -28,6 +28,9 @@ export const registerUser = async (c: Context<{ Bindings: AppBindings }>) => {
     }
 
     const { email, countryCode, phoneNumber, username, password } = parsed.data;
+    const normalizedPhone = phoneNumber.replace(/\D/g, "");
+    const phoneHash = await sha256Hex(normalizedPhone);
+
     const existingUser = await usersRepository.findByEmail(c, email);
 
     if (existingUser) {
@@ -54,8 +57,14 @@ export const registerUser = async (c: Context<{ Bindings: AppBindings }>) => {
       phoneNumber,
       username,
       passwordHash,
+      phoneHash,
       nowIso,
     });
+
+    // Resolve ghostQueue: existing users who already have this phone in their contacts.
+    // Import lazily to avoid circular deps.
+    const { nexusRepository } = await import("../nexus/nexus.repository");
+    await nexusRepository.resolveGhostQueue(c, phoneHash);
 
     console.log("[users.register] success", {
       email,
@@ -221,6 +230,7 @@ export const loginUser = async (c: Context<{ Bindings: AppBindings }>) => {
         phoneNumber: user.phoneNumber,
         username: user.username,
         status: user.status,
+        isAdmin: user.isAdmin,
         iat: nowSec,
         exp: nowSec + 60 * 60 * 24,
       },
@@ -316,5 +326,81 @@ export const whoAmI = async (c: Context<{ Bindings: AppBindings }>) => {
     throw new HTTPException(500, {
       message: "Failed to fetch user profile",
     });
+  }
+};
+
+export const approveUser = async (c: Context<{ Bindings: AppBindings }>) => {
+  const startMs = Date.now();
+  console.log("[users.approveUser] request received", {
+    method: c.req.method,
+    path: c.req.path,
+    timestamp: new Date().toISOString(),
+  });
+
+  try {
+    const reqWithUser = c.req as typeof c.req & Partial<AuthRequestUser>;
+
+    if (!reqWithUser.userId) {
+      throw new HTTPException(401, { message: "Unauthorized" });
+    }
+
+    const caller = await usersRepository.findById(c, reqWithUser.userId);
+
+    if (!caller?.isAdmin) {
+      throw new HTTPException(403, {
+        message: "Forbidden: only admins can approve users",
+      });
+    }
+
+    const targetUserId = c.req.param("userId");
+    if (!targetUserId) {
+      throw new HTTPException(400, { message: "userId param is required" });
+    }
+
+    const target = await usersRepository.findById(c, targetUserId);
+
+    if (!target) {
+      throw new HTTPException(404, { message: "User not found" });
+    }
+
+    if (target.status === USER_STATUS.APPROVED) {
+      return c.json(
+        {
+          code: 200,
+          message: "User is already approved",
+          data: { userId: targetUserId, status: target.status },
+        },
+        200,
+      );
+    }
+
+    const nowIso = new Date().toISOString();
+    await usersRepository.approveById(c, targetUserId, nowIso);
+
+    console.log("[users.approveUser] success", {
+      targetUserId,
+      approvedBy: reqWithUser.userId,
+      durationMs: Date.now() - startMs,
+    });
+
+    return c.json(
+      {
+        code: 200,
+        message: "User approved successfully",
+        data: { userId: targetUserId, status: USER_STATUS.APPROVED },
+      },
+      200,
+    );
+  } catch (error) {
+    console.error("[users.approveUser] failed", {
+      durationMs: Date.now() - startMs,
+      error,
+    });
+
+    if (error instanceof HTTPException) {
+      throw error;
+    }
+
+    throw new HTTPException(500, { message: "Failed to approve user" });
   }
 };

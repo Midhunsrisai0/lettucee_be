@@ -29,6 +29,20 @@
       "when": 1775284685831,
       "tag": "0003_freezing_miracleman",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1775400875891,
+      "tag": "0004_noisy_songbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1775403412186,
+      "tag": "0005_closed_black_tarantula",
+      "breakpoints": true
     }
   ]
 }
