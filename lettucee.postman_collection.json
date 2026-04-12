@@ -16,12 +16,8 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/health",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "health"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
             },
             "description": "Checks API/service health."
           },
@@ -48,15 +44,8 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/users/register",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                "register"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "register"]
             },
             "description": "Registers a user in PENDING status."
           },
@@ -93,15 +82,8 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/users/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                "login"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "login"]
             },
             "description": "Logs in a user. On 200, stores token to collection variable authToken."
           },
@@ -119,15 +101,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/v1/users/whoami",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                "whoami"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "whoami"]
             },
             "description": "Returns user info from JWT payload."
           },
@@ -140,14 +115,8 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/users",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users"]
             },
             "description": "Fetches approved users."
           },
@@ -173,17 +142,29 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/users/approve-pending",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                "approve-pending"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "approve-pending"]
             },
             "description": "Approves a pending user. Requires admin token."
+          },
+          "response": []
+        },
+        {
+          "name": "List Pending Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "pending"]
+            },
+            "description": "Lists all pending users. Admin access required."
           },
           "response": []
         }
