@@ -5,8 +5,15 @@ import type { AppBindings } from "../../types/env";
 import type { AuthRequestUser } from "../../middlewares/auth.middleware";
 import { sha256Hex } from "../../utils/crypto";
 import { USER_STATUS } from "../../db/schema";
-import { usersRepository } from "./users.repository";
-import { loginUserSchema, registerUserSchema } from "./users.schema";
+import {
+  PendingApprovalConflictError,
+  usersRepository,
+} from "./users.repository";
+import {
+  approvePendingUserSchema,
+  loginUserSchema,
+  registerUserSchema,
+} from "./users.schema";
 
 export const registerUser = async (c: Context<{ Bindings: AppBindings }>) => {
   const startMs = Date.now();
@@ -248,6 +255,7 @@ export const loginUser = async (c: Context<{ Bindings: AppBindings }>) => {
             username: user.username,
             status: user.status,
             hasSuperAccess: user.hasSuperAccess,
+            isAdmin: user.isAdmin,
           },
         },
       },
@@ -315,6 +323,102 @@ export const whoAmI = async (c: Context<{ Bindings: AppBindings }>) => {
 
     throw new HTTPException(500, {
       message: "Failed to fetch user profile",
+    });
+  }
+};
+
+export const approvePendingUser = async (
+  c: Context<{ Bindings: AppBindings }>,
+) => {
+  const startMs = Date.now();
+  console.log("[users.approvePending] request received", {
+    method: c.req.method,
+    path: c.req.path,
+    timestamp: new Date().toISOString(),
+  });
+
+  try {
+    const reqWithUser = c.req as typeof c.req & Partial<AuthRequestUser>;
+    const approverUserId = reqWithUser.userId;
+
+    if (!approverUserId) {
+      throw new HTTPException(401, { message: "Unauthorized" });
+    }
+
+    const body = await c.req.json();
+    const parsed = approvePendingUserSchema.safeParse(body);
+
+    if (!parsed.success) {
+      throw new HTTPException(400, {
+        message: "Invalid approval payload",
+        cause: parsed.error.flatten(),
+      });
+    }
+
+    const { userId, superAccess, superAccessReason, comments } = parsed.data;
+
+    const callerIsAdmin = await usersRepository.isAdmin(c, approverUserId);
+    if (!callerIsAdmin) {
+      throw new HTTPException(401, { message: "Unauthorized" });
+    }
+
+    const approveeUser = await usersRepository.findById(c, userId);
+    if (!approveeUser) {
+      throw new HTTPException(404, { message: "User not found" });
+    }
+
+    if (approveeUser.status !== USER_STATUS.PENDING) {
+      throw new HTTPException(409, {
+        message: "User is not in pending status",
+      });
+    }
+
+    const nowIso = new Date().toISOString();
+    await usersRepository.approvePendingUser(c, {
+      approveeUserId: userId,
+      approverUserId,
+      superAccess,
+      superAccessReason,
+      comments,
+      nowIso,
+    });
+
+    console.log("[users.approvePending] success", {
+      approveeUserId: userId,
+      approverUserId,
+      durationMs: Date.now() - startMs,
+    });
+
+    return c.json(
+      {
+        code: 200,
+        message: "Pending user approved successfully",
+        data: {
+          userId,
+          status: USER_STATUS.APPROVED,
+          hasSuperAccess: superAccess,
+        },
+      },
+      200,
+    );
+  } catch (error) {
+    console.error("[users.approvePending] failed", {
+      durationMs: Date.now() - startMs,
+      error,
+    });
+
+    if (error instanceof HTTPException) {
+      throw error;
+    }
+
+    if (error instanceof PendingApprovalConflictError) {
+      throw new HTTPException(409, {
+        message: "User is no longer in pending status",
+      });
+    }
+
+    throw new HTTPException(500, {
+      message: "Failed to approve pending user",
     });
   }
 };

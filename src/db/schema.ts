@@ -43,14 +43,52 @@ export const users = sqliteTable("users", {
   updatedAt: text("updated_at")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const userConfig = sqliteTable("userconfig", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createCuid()),
+  userId: text("user_id")
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: "cascade" }),
+  isAdmin: integer("is_admin", { mode: "boolean" }).notNull().default(false),
   hasSuperAccess: integer("has_super_access", { mode: "boolean" })
     .notNull()
     .default(false),
 });
 
+export const approvals = sqliteTable("approvals", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createCuid()),
+  approvee: text("approvee")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  approver: text("approver")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  superAccessGiven: integer("super_access_given", {
+    mode: "boolean",
+  }).notNull(),
+  superAccessReason: text("super_access_reason"),
+  comments: text("comments"),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
 export type User = typeof users.$inferSelect;
 
-export type PublicUser = Pick<
-  User,
-  "id" | "email" | "username" | "status" | "createdAt" | "hasSuperAccess"
->;
+export type PublicUser = {
+  id: string;
+  email: string;
+  username: string;
+  status: UserStatus;
+  createdAt: string;
+  hasSuperAccess: boolean;
+};

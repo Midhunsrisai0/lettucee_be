@@ -19,5 +19,13 @@ export const loginUserSchema = z
     path: ["email"],
   });
 
+export const approvePendingUserSchema = z.object({
+  userId: z.string().min(1),
+  superAccess: z.boolean(),
+  superAccessReason: z.string().max(500).optional(),
+  comments: z.string().max(2000).optional(),
+});
+
 export type RegisterUserSchema = z.infer<typeof registerUserSchema>;
 export type LoginUserSchema = z.infer<typeof loginUserSchema>;
+export type ApprovePendingUserSchema = z.infer<typeof approvePendingUserSchema>;

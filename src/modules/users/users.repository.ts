@@ -1,23 +1,140 @@
 import type { Context } from "hono";
-import { desc, eq, or } from "drizzle-orm";
+import { and, desc, eq, or, sql } from "drizzle-orm";
 import type { AppBindings } from "../../types/env";
 import { getDrizzleDb } from "../../lib/drizzle";
 import {
+  approvals,
   USER_STATUS,
+  userConfig,
   users,
   type PublicUser,
   type User,
 } from "../../db/schema";
 
+type UserWithConfig = User & {
+  hasSuperAccess: boolean;
+  isAdmin: boolean;
+};
+
+export class PendingApprovalConflictError extends Error {
+  constructor() {
+    super("User is no longer in pending status");
+    this.name = "PendingApprovalConflictError";
+  }
+}
+
 export const usersRepository = {
-  async findByEmail(
+  async findById(
     c: Context<{ Bindings: AppBindings }>,
-    email: string,
+    userId: string,
   ): Promise<User | null> {
     const db = getDrizzleDb(c);
     const result = await db
       .select()
       .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    return result[0] ?? null;
+  },
+
+  async isAdmin(
+    c: Context<{ Bindings: AppBindings }>,
+    userId: string,
+  ): Promise<boolean> {
+    const db = getDrizzleDb(c);
+    const result = await db
+      .select({
+        isAdmin: userConfig.isAdmin,
+      })
+      .from(userConfig)
+      .where(eq(userConfig.userId, userId))
+      .limit(1);
+
+    return result[0]?.isAdmin ?? false;
+  },
+
+  async approvePendingUser(
+    c: Context<{ Bindings: AppBindings }>,
+    input: {
+      approveeUserId: string;
+      approverUserId: string;
+      superAccess: boolean;
+      superAccessReason?: string;
+      comments?: string;
+      nowIso: string;
+    },
+  ): Promise<void> {
+    const db = getDrizzleDb(c);
+
+    await db
+      .update(users)
+      .set({
+        status: USER_STATUS.APPROVED,
+        updatedAt: input.nowIso,
+      })
+      .where(
+        and(
+          eq(users.id, input.approveeUserId),
+          eq(users.status, USER_STATUS.PENDING),
+        ),
+      );
+
+    const changesResult = await c.env.DB.prepare(
+      "select changes() as changes",
+    ).first<{ changes: number }>();
+
+    if (!changesResult || Number(changesResult.changes ?? 0) !== 1) {
+      throw new PendingApprovalConflictError();
+    }
+
+    await db.insert(approvals).values({
+      approvee: input.approveeUserId,
+      approver: input.approverUserId,
+      superAccessGiven: input.superAccess,
+      superAccessReason: input.superAccessReason,
+      comments: input.comments,
+      createdAt: input.nowIso,
+      updatedAt: input.nowIso,
+    });
+
+    await db
+      .insert(userConfig)
+      .values({
+        userId: input.approveeUserId,
+        isAdmin: false,
+        hasSuperAccess: input.superAccess,
+      })
+      .onConflictDoUpdate({
+        target: userConfig.userId,
+        set: {
+          hasSuperAccess: input.superAccess,
+        },
+      });
+  },
+
+  async findByEmail(
+    c: Context<{ Bindings: AppBindings }>,
+    email: string,
+  ): Promise<UserWithConfig | null> {
+    const db = getDrizzleDb(c);
+    const result = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        countryCode: users.countryCode,
+        phoneNumber: users.phoneNumber,
+        username: users.username,
+        passwordHash: users.passwordHash,
+        status: users.status,
+        lastLoginAt: users.lastLoginAt,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+        hasSuperAccess: sql<boolean>`coalesce(${userConfig.hasSuperAccess}, false)`,
+        isAdmin: sql<boolean>`coalesce(${userConfig.isAdmin}, false)`,
+      })
+      .from(users)
+      .leftJoin(userConfig, eq(userConfig.userId, users.id))
       .where(eq(users.email, email.toLowerCase()))
       .limit(1);
 
@@ -27,11 +144,25 @@ export const usersRepository = {
   async findByPhoneNumber(
     c: Context<{ Bindings: AppBindings }>,
     phoneNumber: string,
-  ): Promise<User | null> {
+  ): Promise<UserWithConfig | null> {
     const db = getDrizzleDb(c);
     const result = await db
-      .select()
+      .select({
+        id: users.id,
+        email: users.email,
+        countryCode: users.countryCode,
+        phoneNumber: users.phoneNumber,
+        username: users.username,
+        passwordHash: users.passwordHash,
+        status: users.status,
+        lastLoginAt: users.lastLoginAt,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+        hasSuperAccess: sql<boolean>`coalesce(${userConfig.hasSuperAccess}, false)`,
+        isAdmin: sql<boolean>`coalesce(${userConfig.isAdmin}, false)`,
+      })
       .from(users)
+      .leftJoin(userConfig, eq(userConfig.userId, users.id))
       .where(eq(users.phoneNumber, phoneNumber))
       .limit(1);
 
@@ -44,13 +175,27 @@ export const usersRepository = {
       email?: string;
       phoneNumber?: string;
     },
-  ): Promise<User | null> {
+  ): Promise<UserWithConfig | null> {
     const db = getDrizzleDb(c);
 
     if (input.email && input.phoneNumber) {
       const result = await db
-        .select()
+        .select({
+          id: users.id,
+          email: users.email,
+          countryCode: users.countryCode,
+          phoneNumber: users.phoneNumber,
+          username: users.username,
+          passwordHash: users.passwordHash,
+          status: users.status,
+          lastLoginAt: users.lastLoginAt,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+          hasSuperAccess: sql<boolean>`coalesce(${userConfig.hasSuperAccess}, false)`,
+          isAdmin: sql<boolean>`coalesce(${userConfig.isAdmin}, false)`,
+        })
         .from(users)
+        .leftJoin(userConfig, eq(userConfig.userId, users.id))
         .where(
           or(
             eq(users.email, input.email.toLowerCase()),
@@ -108,9 +253,10 @@ export const usersRepository = {
         username: users.username,
         status: users.status,
         createdAt: users.createdAt,
-        hasSuperAccess: users.hasSuperAccess,
+        hasSuperAccess: sql<boolean>`coalesce(${userConfig.hasSuperAccess}, false)`,
       })
       .from(users)
+      .leftJoin(userConfig, eq(userConfig.userId, users.id))
       .where(eq(users.status, USER_STATUS.APPROVED))
       .orderBy(desc(users.createdAt));
 
