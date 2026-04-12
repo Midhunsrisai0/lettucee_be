@@ -142,6 +142,61 @@ export const listApprovedUsers = async (
   }
 };
 
+export const listPendingUsers = async (
+  c: Context<{ Bindings: AppBindings }>,
+) => {
+  const startMs = Date.now();
+  console.log("[users.listPending] request received", {
+    method: c.req.method,
+    path: c.req.path,
+    timestamp: new Date().toISOString(),
+  });
+
+  try {
+    const reqWithUser = c.req as typeof c.req & Partial<AuthRequestUser>;
+    const requesterUserId = reqWithUser.userId;
+
+    if (!requesterUserId) {
+      throw new HTTPException(401, { message: "Unauthorized" });
+    }
+
+    const callerIsAdmin = await usersRepository.isAdmin(c, requesterUserId);
+    if (!callerIsAdmin) {
+      throw new HTTPException(401, { message: "Unauthorized" });
+    }
+
+    const users = await usersRepository.listPending(c);
+
+    console.log("[users.listPending] success", {
+      count: users.length,
+      requesterUserId,
+      durationMs: Date.now() - startMs,
+    });
+
+    return c.json(
+      {
+        code: 200,
+        message: "Pending users fetched successfully",
+        data: users,
+      },
+      200,
+    );
+  } catch (error) {
+    console.error("[users.listPending] failed", {
+      durationMs: Date.now() - startMs,
+      error,
+    });
+
+    if (error instanceof HTTPException) {
+      throw error;
+    }
+
+    throw new HTTPException(500, {
+      message: "Failed to list pending users",
+    });
+  }
+};
+
 export const loginUser = async (c: Context<{ Bindings: AppBindings }>) => {
   const startMs = Date.now();
   console.log("[users.login] request received", {

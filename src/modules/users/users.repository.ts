@@ -263,6 +263,35 @@ export const usersRepository = {
     return rows;
   },
 
+  async listPending(c: Context<{ Bindings: AppBindings }>): Promise<
+    Array<{
+      id: string;
+      email: string;
+      countryCode: string;
+      phoneNumber: string;
+      username: string;
+      status: User["status"];
+      createdAt: string;
+    }>
+  > {
+    const db = getDrizzleDb(c);
+    const rows = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        countryCode: users.countryCode,
+        phoneNumber: users.phoneNumber,
+        username: users.username,
+        status: users.status,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .where(eq(users.status, USER_STATUS.PENDING))
+      .orderBy(desc(users.createdAt));
+
+    return rows;
+  },
+
   async touchLastLoginAt(
     c: Context<{ Bindings: AppBindings }>,
     userId: string,
