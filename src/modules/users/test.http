@@ -1,0 +1,3 @@
+
+  curl -X GET "https://lettucee-be.mittulabs.workers.dev/api/v1/users/whoami" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbW5qeXhrZmgxZjNjODZjMjJmZGE0ZTY3IiwiZW1haWwiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsInBob25lTnVtYmVyIjoiOTg3NjU0MzIxMCIsInVzZXJuYW1lIjoiam9obmRvZSIsInN0YXR1cyI6IkFQUFJPVkVEIiwiaWF0IjoxNzc1MzAwMTgxLCJleHAiOjE3NzUzODY1ODF9.gJR3IZGwQEqvxotMuOgJz4fSvaqppc67Oz5AOMZx_h8"
