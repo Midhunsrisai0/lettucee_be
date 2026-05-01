@@ -1,11 +1,15 @@
 import type { Context } from "hono";
 import { HTTPException } from "hono/http-exception";
 import type { AppBindings } from "../../types/env";
+import type { AuthRequestUser } from "../../middlewares/auth.middleware";
 import { networkRepository } from "./network.repository";
+import { queueSyncContactsJob } from "../../queues/sync-contacts-queue";
+
 import {
   createEdgeSchema,
   listEdgesSchema,
   deleteEdgeSchema,
+  syncContactsSchema,
 } from "./network.schema";
 
 export const createEdge = async (c: Context<{ Bindings: AppBindings }>) => {
@@ -242,6 +246,66 @@ export const deleteEdge = async (c: Context<{ Bindings: AppBindings }>) => {
 
     throw new HTTPException(500, {
       message: "Failed to delete edge",
+    });
+  }
+};
+
+export const syncContacts = async (c: Context<{ Bindings: AppBindings }>) => {
+  const startMs = Date.now();
+  console.log(
+    `[network.syncContacts] request received ${JSON.stringify({ method: c.req.method, path: c.req.path, timestamp: new Date().toISOString() })}`,
+  );
+
+  try {
+    const reqWithUser = c.req as typeof c.req & Partial<AuthRequestUser>;
+    const userId = reqWithUser.userId;
+
+    if (!userId) {
+      throw new HTTPException(401, { message: "Unauthorized" });
+    }
+
+    const body = await c.req.json();
+    const parsed = syncContactsSchema.safeParse(body);
+
+    if (!parsed.success) {
+      throw new HTTPException(400, {
+        message: "Invalid sync contacts payload",
+        cause: parsed.error.flatten(),
+      });
+    }
+
+    const { phoneNumbers } = parsed.data;
+
+    console.log(
+      `[network.syncContacts] sync initiated ${JSON.stringify({ userId, phoneCount: phoneNumbers.length, durationMs: Date.now() - startMs })}`,
+    );
+
+    await queueSyncContactsJob(c, userId, phoneNumbers);
+
+    return c.json(
+      {
+        code: 202,
+        message:
+          "Contact sync queued successfully. Processing in the background.",
+        data: {
+          userId,
+          phoneCount: phoneNumbers.length,
+          status: "queued",
+        },
+      },
+      202,
+    );
+  } catch (error) {
+    console.error(
+      `[network.syncContacts] failed ${JSON.stringify({ durationMs: Date.now() - startMs, error: String(error) })}`,
+    );
+
+    if (error instanceof HTTPException) {
+      throw error;
+    }
+
+    throw new HTTPException(500, {
+      message: "Failed to initiate contact sync",
     });
   }
 };

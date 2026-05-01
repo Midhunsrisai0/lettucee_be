@@ -6,6 +6,7 @@ import {
   getOutgoingEdges,
   getIncomingEdges,
   deleteEdge,
+  syncContacts,
 } from "./network.controller";
 
 const networkRoutes = new Hono<{ Bindings: AppBindings }>();
@@ -24,5 +25,8 @@ networkRoutes.get("/edges/incoming/:destinationId", getIncomingEdges);
 
 // DELETE /network/edges - Delete an edge
 networkRoutes.delete("/edges", deleteEdge);
+
+// POST /network/sync-contacts - Sync user contacts (queue-based)
+networkRoutes.post("/sync-contacts", syncContacts);
 
 export default networkRoutes;

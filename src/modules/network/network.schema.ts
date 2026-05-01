@@ -21,3 +21,11 @@ export const deleteEdgeSchema = z.object({
 });
 
 export type DeleteEdgeInput = z.infer<typeof deleteEdgeSchema>;
+
+export const syncContactsSchema = z.object({
+  phoneNumbers: z
+    .array(z.string().min(1, "Phone number is required"))
+    .min(1, "At least one phone number is required"),
+});
+
+export type SyncContactsInput = z.infer<typeof syncContactsSchema>;
