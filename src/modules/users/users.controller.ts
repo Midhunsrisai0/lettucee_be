@@ -405,7 +405,7 @@ export const approvePendingUser = async (
     }
 
     const nowIso = new Date().toISOString();
-    await usersRepository.approvePendingUser(c, {
+    const result = await usersRepository.approvePendingUser(c, {
       approveeUserId: userId,
       approverUserId,
       superAccess,
@@ -413,6 +413,17 @@ export const approvePendingUser = async (
       comments,
       nowIso,
     });
+
+    if (!result.success) {
+      if (result.conflict) {
+        throw new HTTPException(409, {
+          message: "User is no longer in pending status",
+        });
+      }
+      throw new HTTPException(500, {
+        message: result.error ?? "Failed to approve pending user",
+      });
+    }
 
     console.log(
       `[users.approvePending] success ${JSON.stringify({ approveeUserId: userId, approverUserId, durationMs: Date.now() - startMs })}`,
