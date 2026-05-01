@@ -7,85 +7,136 @@ import type { CreateEdgeInput, ListEdgesInput } from "./network.schema";
 
 export const networkRepository = {
   async createEdge(
-    c: Context<{ Bindings: AppBindings }>,
+    c: Context<{ Bindings: AppBindings }> | { env: AppBindings },
     input: CreateEdgeInput,
   ) {
-    const db = getDrizzleDb(c);
-    const result = await db
-      .insert(chitti)
-      .values({
-        source: input.source,
-        edge: input.edge,
-        destination: input.destination || null,
-      })
-      .returning();
+    try {
+      const db = getDrizzleDb(c as any);
+      const result = await db
+        .insert(chitti)
+        .values({
+          source: input.source,
+          edge: input.edge,
+          destination: input.destination || null,
+        })
+        .returning();
 
-    return result[0];
+      return result[0];
+    } catch (error: any) {
+      console.error(
+        `[network.createEdge] repository error ${JSON.stringify({ error: String(error) })}`,
+      );
+      throw error;
+    }
   },
 
   async listEdges(
-    c: Context<{ Bindings: AppBindings }>,
+    c: Context<{ Bindings: AppBindings }> | { env: AppBindings },
     filters: ListEdgesInput,
   ) {
-    const db = getDrizzleDb(c);
-    const conditions = [];
+    try {
+      const db = getDrizzleDb(c as any);
+      const conditions: any[] = [];
 
-    if (filters.sourceId) {
-      conditions.push(eq(chitti.source, filters.sourceId));
+      if (filters.sourceId) {
+        conditions.push(eq(chitti.source, filters.sourceId));
+      }
+
+      if (filters.destinationId) {
+        conditions.push(eq(chitti.destination, filters.destinationId));
+      }
+
+      if (filters.edgeType) {
+        conditions.push(eq(chitti.edge, filters.edgeType));
+      }
+
+      const query =
+        conditions.length > 0
+          ? db
+              .select()
+              .from(chitti)
+              .where(and(...conditions))
+          : db.select().from(chitti);
+
+      return await query;
+    } catch (error: any) {
+      console.error(
+        `[network.listEdges] repository error ${JSON.stringify({ error: String(error) })}`,
+      );
+      throw error;
     }
-
-    if (filters.destinationId) {
-      conditions.push(eq(chitti.destination, filters.destinationId));
-    }
-
-    if (filters.edgeType) {
-      conditions.push(eq(chitti.edge, filters.edgeType));
-    }
-
-    const query =
-      conditions.length > 0
-        ? db
-            .select()
-            .from(chitti)
-            .where(and(...conditions))
-        : db.select().from(chitti);
-
-    return await query;
   },
 
-  async getEdge(c: Context<{ Bindings: AppBindings }>, edgeId: string) {
-    const db = getDrizzleDb(c);
-    const result = await db.select().from(chitti).where(eq(chitti.id, edgeId));
+  async getEdge(
+    c: Context<{ Bindings: AppBindings }> | { env: AppBindings },
+    edgeId: string,
+  ) {
+    try {
+      const db = getDrizzleDb(c as any);
+      const result = await db
+        .select()
+        .from(chitti)
+        .where(eq(chitti.id, edgeId));
 
-    return result[0] || null;
+      return result[0] || null;
+    } catch (error: any) {
+      console.error(
+        `[network.getEdge] repository error ${JSON.stringify({ error: String(error) })}`,
+      );
+      throw error;
+    }
   },
 
-  async deleteEdge(c: Context<{ Bindings: AppBindings }>, edgeId: string) {
-    const db = getDrizzleDb(c);
-    const result = await db
-      .delete(chitti)
-      .where(eq(chitti.id, edgeId))
-      .returning();
+  async deleteEdge(
+    c: Context<{ Bindings: AppBindings }> | { env: AppBindings },
+    edgeId: string,
+  ) {
+    try {
+      const db = getDrizzleDb(c as any);
+      const result = await db
+        .delete(chitti)
+        .where(eq(chitti.id, edgeId))
+        .returning();
 
-    return result[0];
+      return result[0];
+    } catch (error: any) {
+      console.error(
+        `[network.deleteEdge] repository error ${JSON.stringify({ error: String(error) })}`,
+      );
+      throw error;
+    }
   },
 
   async getOutgoingEdges(
-    c: Context<{ Bindings: AppBindings }>,
+    c: Context<{ Bindings: AppBindings }> | { env: AppBindings },
     sourceId: string,
   ) {
-    const db = getDrizzleDb(c);
-    return await db.select().from(chitti).where(eq(chitti.source, sourceId));
+    try {
+      const db = getDrizzleDb(c as any);
+      return await db.select().from(chitti).where(eq(chitti.source, sourceId));
+    } catch (error: any) {
+      console.error(
+        `[network.getOutgoingEdges] repository error ${JSON.stringify({ error: String(error) })}`,
+      );
+      throw error;
+    }
   },
 
   async getIncomingEdges(
-    c: Context<{ Bindings: AppBindings }>,
+    c: Context<{ Bindings: AppBindings }> | { env: AppBindings },
     destinationId: string,
   ) {
-    const db = getDrizzleDb(c);
-    return await db
-      .select()
-      .from(chitti)
-      .where(eq(chitti.destination, destinationId));
+    try {
+      const db = getDrizzleDb(c as any);
+      return await db
+        .select()
+        .from(chitti)
+        .where(eq(chitti.destination, destinationId));
+    } catch (error: any) {
+      console.error(
+        `[network.getIncomingEdges] repository error ${JSON.stringify({ error: String(error) })}`,
+      );
+      throw error;
+    }
   },
 };
