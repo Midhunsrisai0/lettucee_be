@@ -1,9 +1,11 @@
 import { app } from "./app";
 import { CallRoom } from "./modules/call-room/call-room.do";
-import type { AppBindings } from "./types/env";
+import type { AppBindings, ApprovalQueueJob } from "./types/env";
+import { processApprovalQueue } from "./lib/adjacency-queue";
+import { healthQueueConsumer } from "./modules/health/health.controller";
 
 const worker: ExportedHandler<AppBindings> = {
-  fetch(request, env, ctx) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const roomMatch = url.pathname.match(/^\/room\/([^/]+)$/);
 
@@ -25,6 +27,64 @@ const worker: ExportedHandler<AppBindings> = {
     }
 
     return app.fetch(request, env, ctx);
+  },
+
+  async queue(batch, env, ctx) {
+    console.log("[Worker] queue consumer triggered", {
+      queue: batch.queue,
+      messageCount: batch.messages.length,
+    });
+
+    switch (batch.queue) {
+      case "lettucee-approval-jobs":
+        for (const message of batch.messages) {
+          try {
+            const job = message.body as ApprovalQueueJob;
+
+            const mockContext = {
+              env,
+              waitUntil: (promise: Promise<any>) => ctx.waitUntil(promise),
+            } as any;
+
+            await processApprovalQueue(mockContext, job);
+            console.log("[Worker] approval queue message processed", {
+              tupleId: job.tupleId,
+              approveeUserId: job.approveeUserId,
+            });
+          } catch (error) {
+            console.error("[Worker] approval queue message processing failed", {
+              error,
+              message: message.body,
+            });
+            throw error; // Re-throw to trigger batch retry
+          }
+        }
+        break;
+      case "health-check-jobs":
+        for (const message of batch.messages) {
+          try {
+            console.log("[Worker] processing health check queue message");
+            const job = message.body as any; // Define a type if needed
+            await healthQueueConsumer(job);
+          } catch (error) {
+            console.error(
+              "[Worker] health check queue message processing failed",
+              {
+                error,
+                message: message.body,
+              },
+            );
+            throw error; // Re-throw to trigger batch retry
+          }
+        }
+        break;
+      default:
+        console.warn("[Worker] unknown queue received", {
+          queue: batch.queue,
+          messageCount: batch.messages.length,
+        });
+        break;
+    }
   },
 };
 

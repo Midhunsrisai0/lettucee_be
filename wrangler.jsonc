@@ -27,6 +27,30 @@
       "database_id": "1965b5cc-6556-4818-9daf-795243781fae",
     },
   ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "APPROVAL_QUEUE",
+        "queue": "lettucee-approval-jobs",
+      },
+      {
+        "binding": "HEALTH_CHECK_QUEUE",
+        "queue": "health-check-jobs",
+      },
+    ],
+    "consumers": [
+      {
+        "queue": "lettucee-approval-jobs",
+        "max_batch_size": 10,
+        "max_batch_timeout": 30,
+      },
+      {
+        "queue": "health-check-jobs",
+        "max_batch_size": 10,
+        "max_batch_timeout": 30,
+      },
+    ],
+  },
   "vars": {
     "APP_NAME": "lettucee-be",
     "APP_ENV": "development",
