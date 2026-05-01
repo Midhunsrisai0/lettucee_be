@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const USER_STATUS = {
   PENDING: "PENDING",
@@ -74,6 +74,48 @@ export const approvals = sqliteTable("approvals", {
   }).notNull(),
   superAccessReason: text("super_access_reason"),
   comments: text("comments"),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const chitti = sqliteTable(
+  "chitti",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createCuid()),
+    source: text("source")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    edge: text("edge").notNull(),
+    destination: text("destination").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    createdAt: text("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    index("chitti_source_idx").on(table.source),
+    index("chitti_destination_idx").on(table.destination),
+  ],
+);
+
+export const pandu = sqliteTable("pandu", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createCuid()),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  adjacencyList: text("adjacency_list").notNull(), // JSON string of { edge: destinationUserId }
   createdAt: text("created_at")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
