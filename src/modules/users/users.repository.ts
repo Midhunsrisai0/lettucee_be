@@ -2,7 +2,7 @@ import type { Context } from "hono";
 import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
 import type { AppBindings } from "../../types/env";
 import { getDrizzleDb } from "../../lib/drizzle";
-import { queueApprovalJob } from "../../lib/adjacency-queue";
+import { queueApprovalJob } from "../../queues/adjacency-queue";
 import {
   approvals,
   chitti,

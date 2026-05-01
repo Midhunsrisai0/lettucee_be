@@ -1,7 +1,8 @@
 import { app } from "./app";
 import { CallRoom } from "./modules/call-room/call-room.do";
 import type { AppBindings, ApprovalQueueJob } from "./types/env";
-import { processApprovalQueue } from "./lib/adjacency-queue";
+import { processApprovalQueue } from "./queues/adjacency-queue";
+import { processSyncContactsQueue } from "./queues/sync-contacts-queue";
 import { healthQueueConsumer } from "./modules/health/health.controller";
 
 const worker: ExportedHandler<AppBindings> = {
@@ -37,6 +38,9 @@ const worker: ExportedHandler<AppBindings> = {
       case "lettucee-approval-jobs":
         for (const message of batch.messages) {
           try {
+            console.log(
+              `[Worker] processing approval queue message ${JSON.stringify({ messageId: message.id })}`,
+            );
             const job = message.body as ApprovalQueueJob;
 
             const mockContext = {
@@ -68,6 +72,31 @@ const worker: ExportedHandler<AppBindings> = {
               `[Worker] approval queue message processing failed ${JSON.stringify({ error: String(error), message: message.body })}`,
             );
             throw error; // Re-throw to trigger batch retry
+          }
+        }
+        break;
+      case "sync-contacts-jobs":
+        for (const message of batch.messages) {
+          try {
+            console.log(
+              `[Worker] processing sync contacts queue message ${JSON.stringify({ messageId: message.id })}`,
+            );
+            const job = message.body as any;
+
+            const mockContext = {
+              env,
+              waitUntil: (promise: Promise<any>) => ctx.waitUntil(promise),
+            } as any;
+
+            await processSyncContactsQueue(mockContext, job);
+            console.log(
+              `[Worker] sync-contacts queue message processed ${JSON.stringify({ userId: job.userId, phoneCount: job.phoneNumbers.length })}`,
+            );
+          } catch (error) {
+            console.error(
+              `[Worker] sync-contacts queue message processing failed ${JSON.stringify({ error: String(error), message: message.body })}`,
+            );
+            throw error;
           }
         }
         break;

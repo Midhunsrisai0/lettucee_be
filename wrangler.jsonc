@@ -37,17 +37,29 @@
         "binding": "HEALTH_CHECK_QUEUE",
         "queue": "health-check-jobs",
       },
+      {
+        "binding": "SYNC_CONTACTS_QUEUE",
+        "queue": "sync-contacts-jobs",
+      },
     ],
     "consumers": [
       {
         "queue": "lettucee-approval-jobs",
         "max_batch_size": 10,
         "max_batch_timeout": 30,
+        "max_concurrency": 1,
       },
       {
         "queue": "health-check-jobs",
         "max_batch_size": 10,
         "max_batch_timeout": 30,
+        "max_concurrency": 1,
+      },
+      {
+        "queue": "sync-contacts-jobs",
+        "max_batch_size": 5,
+        "max_batch_timeout": 30,
+        "max_concurrency": 1,
       },
     ],
   },
