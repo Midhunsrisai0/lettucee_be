@@ -54,7 +54,7 @@ export const healthQueueProducer = async (
     const message = `Health check queue message at ${new Date().toISOString()}`;
 
     const queue = c.env.HEALTH_CHECK_QUEUE;
-    queue.send({
+    await queue.send({
       jobId,
       message,
     });
