@@ -11,17 +11,16 @@ const worker: ExportedHandler<AppBindings> = {
 
     if (roomMatch) {
       const roomId = decodeURIComponent(roomMatch[1]);
-      console.log("[Worker] room route matched", {
-        roomId,
-        path: url.pathname,
-      });
+      console.log(
+        `[Worker] room route matched ${JSON.stringify({ roomId, path: url.pathname })}`,
+      );
 
       const id = env.CALL_ROOM.idFromName(roomId);
       const stub = env.CALL_ROOM.get(id);
 
-      console.log("[Worker] forwarding request to call room durable object", {
-        roomId,
-      });
+      console.log(
+        `[Worker] forwarding request to call room durable object ${JSON.stringify({ roomId })}`,
+      );
 
       return stub.fetch(request);
     }
@@ -30,10 +29,9 @@ const worker: ExportedHandler<AppBindings> = {
   },
 
   async queue(batch, env, ctx) {
-    console.log("[Worker] queue consumer triggered", {
-      queue: batch.queue,
-      messageCount: batch.messages.length,
-    });
+    console.log(
+      `[Worker] queue consumer triggered ${JSON.stringify({ queue: batch.queue, messageCount: batch.messages.length })}`,
+    );
 
     switch (batch.queue) {
       case "lettucee-approval-jobs":
@@ -47,10 +45,9 @@ const worker: ExportedHandler<AppBindings> = {
             } as any;
 
             await processApprovalQueue(mockContext, job);
-            console.log("[Worker] approval queue message processed", {
-              tupleId: job.tupleId,
-              approveeUserId: job.approveeUserId,
-            });
+            console.log(
+              `[Worker] approval queue message processed ${JSON.stringify({ tupleId: job.tupleId, approveeUserId: job.approveeUserId })}`,
+            );
           } catch (error) {
             console.error("[Worker] approval queue message processing failed", {
               error,
@@ -68,21 +65,16 @@ const worker: ExportedHandler<AppBindings> = {
             await healthQueueConsumer(job);
           } catch (error) {
             console.error(
-              "[Worker] health check queue message processing failed",
-              {
-                error,
-                message: message.body,
-              },
+              `[Worker] approval queue message processing failed ${JSON.stringify({ error: String(error), message: message.body })}`,
             );
             throw error; // Re-throw to trigger batch retry
           }
         }
         break;
       default:
-        console.warn("[Worker] unknown queue received", {
-          queue: batch.queue,
-          messageCount: batch.messages.length,
-        });
+        console.warn(
+          `[Worker] unknown queue received ${JSON.stringify({ queue: batch.queue, messageCount: batch.messages.length })}`,
+        );
         break;
     }
   },

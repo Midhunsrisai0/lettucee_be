@@ -12,10 +12,9 @@ export const processApprovalQueue = async (
   const { tupleId, approveeUserId } = job;
   const nowIso = new Date().toISOString();
 
-  console.log("[approval-queue] processing job", {
-    tupleId,
-    approveeUserId,
-  });
+  console.log(
+    `[approval-queue] processing job ${JSON.stringify({ tupleId, approveeUserId })}`,
+  );
 
   try {
     // Step 1: Fetch the chitti tuple by id
@@ -26,9 +25,9 @@ export const processApprovalQueue = async (
       .limit(1);
 
     if (!tuple[0]) {
-      console.warn("[approval-queue] tuple not found", {
-        tupleId,
-      });
+      console.warn(
+        `[approval-queue] tuple not found ${JSON.stringify({ tupleId })}`,
+      );
       return;
     }
 
@@ -43,10 +42,9 @@ export const processApprovalQueue = async (
       })
       .where(eq(chitti.id, tupleId));
 
-    console.log("[approval-queue] tuple destination updated", {
-      tupleId,
-      destination: approveeUserId,
-    });
+    console.log(
+      `[approval-queue] tuple destination updated ${JSON.stringify({ tupleId, destination: approveeUserId })}`,
+    );
 
     // Step 3: Fetch source user's pandu record
     const sourceUserPandu = await db
@@ -56,9 +54,9 @@ export const processApprovalQueue = async (
       .limit(1);
 
     if (!sourceUserPandu[0]) {
-      console.warn("[approval-queue] source user pandu not found", {
-        sourceUserId,
-      });
+      console.warn(
+        `[approval-queue] source user pandu not found ${JSON.stringify({ sourceUserId })}`,
+      );
       return;
     }
 
@@ -67,10 +65,9 @@ export const processApprovalQueue = async (
     try {
       adjacencyList = JSON.parse(sourceUserPandu[0].adjacencyList);
     } catch (parseErr) {
-      console.warn("[approval-queue] failed to parse adjacency list", {
-        sourceUserId,
-        error: parseErr,
-      });
+      console.warn(
+        `[approval-queue] failed to parse adjacency list ${JSON.stringify({ sourceUserId, error: String(parseErr) })}`,
+      );
       adjacencyList = [];
     }
 
@@ -86,23 +83,18 @@ export const processApprovalQueue = async (
         })
         .where(eq(pandu.userId, sourceUserId));
 
-      console.log("[approval-queue] adjacency list updated", {
-        sourceUserId,
-        approveeUserId,
-        newCount: adjacencyList.length,
-      });
+      console.log(
+        `[approval-queue] adjacency list updated ${JSON.stringify({ sourceUserId, approveeUserId, newCount: adjacencyList.length })}`,
+      );
     } else {
-      console.log("[approval-queue] approvee already in adjacency list", {
-        sourceUserId,
-        approveeUserId,
-      });
+      console.log(
+        `[approval-queue] approvee already in adjacency list ${JSON.stringify({ sourceUserId, approveeUserId })}`,
+      );
     }
   } catch (error) {
-    console.error("[approval-queue] failed to process job", {
-      tupleId,
-      approveeUserId,
-      error,
-    });
+    console.error(
+      `[approval-queue] failed to process job ${JSON.stringify({ tupleId, approveeUserId, error: String(error) })}`,
+    );
     throw error;
   }
 };
@@ -121,8 +113,7 @@ export const queueApprovalJob = async (
 
   await queue.send(job);
 
-  console.log("[approval-queue] job queued", {
-    tupleId,
-    approveeUserId,
-  });
+  console.log(
+    `[approval-queue] job queued ${JSON.stringify({ tupleId, approveeUserId })}`,
+  );
 };

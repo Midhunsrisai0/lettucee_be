@@ -10,11 +10,9 @@ import {
 
 export const createEdge = async (c: Context<{ Bindings: AppBindings }>) => {
   const startMs = Date.now();
-  console.log("[network.createEdge] request received", {
-    method: c.req.method,
-    path: c.req.path,
-    timestamp: new Date().toISOString(),
-  });
+  console.log(
+    `[network.createEdge] request received ${JSON.stringify({ method: c.req.method, path: c.req.path, timestamp: new Date().toISOString() })}`,
+  );
 
   try {
     const body = await c.req.json();
@@ -29,10 +27,9 @@ export const createEdge = async (c: Context<{ Bindings: AppBindings }>) => {
 
     const edge = await networkRepository.createEdge(c, parsed.data);
 
-    console.log("[network.createEdge] success", {
-      edgeId: edge.id,
-      durationMs: Date.now() - startMs,
-    });
+    console.log(
+      `[network.createEdge] success ${JSON.stringify({ edgeId: edge.id, durationMs: Date.now() - startMs })}`,
+    );
 
     return c.json(
       {
@@ -43,10 +40,9 @@ export const createEdge = async (c: Context<{ Bindings: AppBindings }>) => {
       201,
     );
   } catch (error) {
-    console.error("[network.createEdge] failed", {
-      durationMs: Date.now() - startMs,
-      error,
-    });
+    console.error(
+      `[network.createEdge] failed ${JSON.stringify({ durationMs: Date.now() - startMs, error: String(error) })}`,
+    );
 
     if (error instanceof HTTPException) {
       throw error;
@@ -60,11 +56,9 @@ export const createEdge = async (c: Context<{ Bindings: AppBindings }>) => {
 
 export const listEdges = async (c: Context<{ Bindings: AppBindings }>) => {
   const startMs = Date.now();
-  console.log("[network.listEdges] request received", {
-    method: c.req.method,
-    path: c.req.path,
-    timestamp: new Date().toISOString(),
-  });
+  console.log(
+    `[network.listEdges] request received ${JSON.stringify({ method: c.req.method, path: c.req.path, timestamp: new Date().toISOString() })}`,
+  );
 
   try {
     const sourceId = c.req.query("sourceId");
@@ -86,10 +80,9 @@ export const listEdges = async (c: Context<{ Bindings: AppBindings }>) => {
 
     const edges = await networkRepository.listEdges(c, parsed.data);
 
-    console.log("[network.listEdges] success", {
-      count: edges.length,
-      durationMs: Date.now() - startMs,
-    });
+    console.log(
+      `[network.listEdges] success ${JSON.stringify({ count: edges.length, durationMs: Date.now() - startMs })}`,
+    );
 
     return c.json(
       {
@@ -100,10 +93,9 @@ export const listEdges = async (c: Context<{ Bindings: AppBindings }>) => {
       200,
     );
   } catch (error) {
-    console.error("[network.listEdges] failed", {
-      durationMs: Date.now() - startMs,
-      error,
-    });
+    console.error(
+      `[network.listEdges] failed ${JSON.stringify({ durationMs: Date.now() - startMs, error: String(error) })}`,
+    );
 
     if (error instanceof HTTPException) {
       throw error;
@@ -121,12 +113,9 @@ export const getOutgoingEdges = async (
   const startMs = Date.now();
   const sourceId = c.req.param("sourceId");
 
-  console.log("[network.getOutgoingEdges] request received", {
-    method: c.req.method,
-    path: c.req.path,
-    sourceId,
-    timestamp: new Date().toISOString(),
-  });
+  console.log(
+    `[network.getOutgoingEdges] request received ${JSON.stringify({ method: c.req.method, path: c.req.path, sourceId, timestamp: new Date().toISOString() })}`,
+  );
 
   try {
     if (!sourceId) {
@@ -135,11 +124,9 @@ export const getOutgoingEdges = async (
 
     const edges = await networkRepository.getOutgoingEdges(c, sourceId);
 
-    console.log("[network.getOutgoingEdges] success", {
-      sourceId,
-      count: edges.length,
-      durationMs: Date.now() - startMs,
-    });
+    console.log(
+      `[network.getOutgoingEdges] success ${JSON.stringify({ sourceId, count: edges.length, durationMs: Date.now() - startMs })}`,
+    );
 
     return c.json(
       {
@@ -150,10 +137,9 @@ export const getOutgoingEdges = async (
       200,
     );
   } catch (error) {
-    console.error("[network.getOutgoingEdges] failed", {
-      durationMs: Date.now() - startMs,
-      error,
-    });
+    console.error(
+      `[network.getOutgoingEdges] failed ${JSON.stringify({ durationMs: Date.now() - startMs, error: String(error) })}`,
+    );
 
     if (error instanceof HTTPException) {
       throw error;
@@ -171,12 +157,9 @@ export const getIncomingEdges = async (
   const startMs = Date.now();
   const destinationId = c.req.param("destinationId");
 
-  console.log("[network.getIncomingEdges] request received", {
-    method: c.req.method,
-    path: c.req.path,
-    destinationId,
-    timestamp: new Date().toISOString(),
-  });
+  console.log(
+    `[network.getIncomingEdges] request received ${JSON.stringify({ method: c.req.method, path: c.req.path, destinationId, timestamp: new Date().toISOString() })}`,
+  );
 
   try {
     if (!destinationId) {
@@ -185,11 +168,9 @@ export const getIncomingEdges = async (
 
     const edges = await networkRepository.getIncomingEdges(c, destinationId);
 
-    console.log("[network.getIncomingEdges] success", {
-      destinationId,
-      count: edges.length,
-      durationMs: Date.now() - startMs,
-    });
+    console.log(
+      `[network.getIncomingEdges] success ${JSON.stringify({ destinationId, count: edges.length, durationMs: Date.now() - startMs })}`,
+    );
 
     return c.json(
       {
@@ -200,10 +181,9 @@ export const getIncomingEdges = async (
       200,
     );
   } catch (error) {
-    console.error("[network.getIncomingEdges] failed", {
-      durationMs: Date.now() - startMs,
-      error,
-    });
+    console.error(
+      `[network.getIncomingEdges] failed ${JSON.stringify({ durationMs: Date.now() - startMs, error: String(error) })}`,
+    );
 
     if (error instanceof HTTPException) {
       throw error;
@@ -217,11 +197,9 @@ export const getIncomingEdges = async (
 
 export const deleteEdge = async (c: Context<{ Bindings: AppBindings }>) => {
   const startMs = Date.now();
-  console.log("[network.deleteEdge] request received", {
-    method: c.req.method,
-    path: c.req.path,
-    timestamp: new Date().toISOString(),
-  });
+  console.log(
+    `[network.deleteEdge] request received ${JSON.stringify({ method: c.req.method, path: c.req.path, timestamp: new Date().toISOString() })}`,
+  );
 
   try {
     const body = await c.req.json();
@@ -241,10 +219,9 @@ export const deleteEdge = async (c: Context<{ Bindings: AppBindings }>) => {
 
     await networkRepository.deleteEdge(c, parsed.data.edgeId);
 
-    console.log("[network.deleteEdge] success", {
-      edgeId: parsed.data.edgeId,
-      durationMs: Date.now() - startMs,
-    });
+    console.log(
+      `[network.deleteEdge] success ${JSON.stringify({ edgeId: parsed.data.edgeId, durationMs: Date.now() - startMs })}`,
+    );
 
     return c.json(
       {
@@ -255,10 +232,9 @@ export const deleteEdge = async (c: Context<{ Bindings: AppBindings }>) => {
       200,
     );
   } catch (error) {
-    console.error("[network.deleteEdge] failed", {
-      durationMs: Date.now() - startMs,
-      error,
-    });
+    console.error(
+      `[network.deleteEdge] failed ${JSON.stringify({ durationMs: Date.now() - startMs, error: String(error) })}`,
+    );
 
     if (error instanceof HTTPException) {
       throw error;

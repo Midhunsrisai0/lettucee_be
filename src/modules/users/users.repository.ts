@@ -153,11 +153,9 @@ export const usersRepository = {
         ),
       );
 
-    console.log("[users.approvePending] found pending tuples", {
-      approveeUserId: input.approveeUserId,
-      mobileNumber: approvedUserMobileNumber,
-      count: pendingTuples.length,
-    });
+    console.log(
+      `[users.approvePending] found pending tuples ${JSON.stringify({ approveeUserId: input.approveeUserId, mobileNumber: approvedUserMobileNumber, count: pendingTuples.length })}`,
+    );
 
     // Step 7: Queue each tuple for approval processing
     if (pendingTuples.length > 0) {
@@ -165,10 +163,9 @@ export const usersRepository = {
         await queueApprovalJob(c, tuple.id, input.approveeUserId);
       }
 
-      console.log("[users.approvePending] queued approval jobs", {
-        approveeUserId: input.approveeUserId,
-        tupleCount: pendingTuples.length,
-      });
+      console.log(
+        `[users.approvePending] queued approval jobs ${JSON.stringify({ approveeUserId: input.approveeUserId, tupleCount: pendingTuples.length })}`,
+      );
     }
   },
 

@@ -17,11 +17,9 @@ import {
 
 export const registerUser = async (c: Context<{ Bindings: AppBindings }>) => {
   const startMs = Date.now();
-  console.log("[users.register] request received", {
-    method: c.req.method,
-    path: c.req.path,
-    timestamp: new Date().toISOString(),
-  });
+  console.log(
+    `[users.register] request received ${JSON.stringify({ method: c.req.method, path: c.req.path, timestamp: new Date().toISOString() })}`,
+  );
 
   try {
     const body = await c.req.json();
@@ -64,11 +62,9 @@ export const registerUser = async (c: Context<{ Bindings: AppBindings }>) => {
       nowIso,
     });
 
-    console.log("[users.register] success", {
-      email,
-      phoneNumber,
-      durationMs: Date.now() - startMs,
-    });
+    console.log(
+      `[users.register] success ${JSON.stringify({ email, phoneNumber, durationMs: Date.now() - startMs })}`,
+    );
 
     return c.json(
       {
@@ -85,10 +81,9 @@ export const registerUser = async (c: Context<{ Bindings: AppBindings }>) => {
       201,
     );
   } catch (error) {
-    console.error("[users.register] failed", {
-      durationMs: Date.now() - startMs,
-      error,
-    });
+    console.error(
+      `[users.register] failed ${JSON.stringify({ durationMs: Date.now() - startMs, error: String(error) })}`,
+    );
 
     if (error instanceof HTTPException) {
       throw error;
@@ -104,19 +99,16 @@ export const listApprovedUsers = async (
   c: Context<{ Bindings: AppBindings }>,
 ) => {
   const startMs = Date.now();
-  console.log("[users.listApproved] request received", {
-    method: c.req.method,
-    path: c.req.path,
-    timestamp: new Date().toISOString(),
-  });
+  console.log(
+    `[users.listApproved] request received ${JSON.stringify({ method: c.req.method, path: c.req.path, timestamp: new Date().toISOString() })}`,
+  );
 
   try {
     const users = await usersRepository.listApproved(c);
 
-    console.log("[users.listApproved] success", {
-      count: users.length,
-      durationMs: Date.now() - startMs,
-    });
+    console.log(
+      `[users.listApproved] success ${JSON.stringify({ count: users.length, durationMs: Date.now() - startMs })}`,
+    );
 
     return c.json(
       {
@@ -127,10 +119,9 @@ export const listApprovedUsers = async (
       200,
     );
   } catch (error) {
-    console.error("[users.listApproved] failed", {
-      durationMs: Date.now() - startMs,
-      error,
-    });
+    console.error(
+      `[users.listApproved] failed ${JSON.stringify({ durationMs: Date.now() - startMs, error: String(error) })}`,
+    );
 
     if (error instanceof HTTPException) {
       throw error;
@@ -146,11 +137,9 @@ export const listPendingUsers = async (
   c: Context<{ Bindings: AppBindings }>,
 ) => {
   const startMs = Date.now();
-  console.log("[users.listPending] request received", {
-    method: c.req.method,
-    path: c.req.path,
-    timestamp: new Date().toISOString(),
-  });
+  console.log(
+    `[users.listPending] request received ${JSON.stringify({ method: c.req.method, path: c.req.path, timestamp: new Date().toISOString() })}`,
+  );
 
   try {
     const reqWithUser = c.req as typeof c.req & Partial<AuthRequestUser>;
@@ -167,11 +156,9 @@ export const listPendingUsers = async (
 
     const users = await usersRepository.listPending(c);
 
-    console.log("[users.listPending] success", {
-      count: users.length,
-      requesterUserId,
-      durationMs: Date.now() - startMs,
-    });
+    console.log(
+      `[users.listPending] success ${JSON.stringify({ count: users.length, requesterUserId, durationMs: Date.now() - startMs })}`,
+    );
 
     return c.json(
       {
@@ -182,10 +169,9 @@ export const listPendingUsers = async (
       200,
     );
   } catch (error) {
-    console.error("[users.listPending] failed", {
-      durationMs: Date.now() - startMs,
-      error,
-    });
+    console.error(
+      `[users.listPending] failed ${JSON.stringify({ durationMs: Date.now() - startMs, error: String(error) })}`,
+    );
 
     if (error instanceof HTTPException) {
       throw error;
@@ -199,11 +185,9 @@ export const listPendingUsers = async (
 
 export const loginUser = async (c: Context<{ Bindings: AppBindings }>) => {
   const startMs = Date.now();
-  console.log("[users.login] request received", {
-    method: c.req.method,
-    path: c.req.path,
-    timestamp: new Date().toISOString(),
-  });
+  console.log(
+    `[users.login] request received ${JSON.stringify({ method: c.req.method, path: c.req.path, timestamp: new Date().toISOString() })}`,
+  );
 
   try {
     const body = await c.req.json();
@@ -292,10 +276,9 @@ export const loginUser = async (c: Context<{ Bindings: AppBindings }>) => {
     const nowIso = new Date().toISOString();
     await usersRepository.touchLastLoginAt(c, user.id, nowIso);
 
-    console.log("[users.login] success", {
-      userId: user.id,
-      durationMs: Date.now() - startMs,
-    });
+    console.log(
+      `[users.login] success ${JSON.stringify({ userId: user.id, durationMs: Date.now() - startMs })}`,
+    );
 
     return c.json(
       {
@@ -317,10 +300,9 @@ export const loginUser = async (c: Context<{ Bindings: AppBindings }>) => {
       200,
     );
   } catch (error) {
-    console.error("[users.login] failed", {
-      durationMs: Date.now() - startMs,
-      error,
-    });
+    console.error(
+      `[users.login] failed ${JSON.stringify({ durationMs: Date.now() - startMs, error: String(error) })}`,
+    );
 
     if (error instanceof HTTPException) {
       throw error;
@@ -334,11 +316,9 @@ export const loginUser = async (c: Context<{ Bindings: AppBindings }>) => {
 
 export const whoAmI = async (c: Context<{ Bindings: AppBindings }>) => {
   const startMs = Date.now();
-  console.log("[users.whoami] request received", {
-    method: c.req.method,
-    path: c.req.path,
-    timestamp: new Date().toISOString(),
-  });
+  console.log(
+    `[users.whoami] request received ${JSON.stringify({ method: c.req.method, path: c.req.path, timestamp: new Date().toISOString() })}`,
+  );
 
   try {
     const reqWithUser = c.req as typeof c.req & Partial<AuthRequestUser>;
@@ -348,10 +328,9 @@ export const whoAmI = async (c: Context<{ Bindings: AppBindings }>) => {
       throw new HTTPException(401, { message: "Invalid token payload" });
     }
 
-    console.log("[users.whoami] success", {
-      userId,
-      durationMs: Date.now() - startMs,
-    });
+    console.log(
+      `[users.whoami] success ${JSON.stringify({ userId, durationMs: Date.now() - startMs })}`,
+    );
 
     return c.json(
       {
@@ -367,10 +346,9 @@ export const whoAmI = async (c: Context<{ Bindings: AppBindings }>) => {
       200,
     );
   } catch (error) {
-    console.error("[users.whoami] failed", {
-      durationMs: Date.now() - startMs,
-      error,
-    });
+    console.error(
+      `[users.whoami] failed ${JSON.stringify({ durationMs: Date.now() - startMs, error: String(error) })}`,
+    );
 
     if (error instanceof HTTPException) {
       throw error;
@@ -386,11 +364,9 @@ export const approvePendingUser = async (
   c: Context<{ Bindings: AppBindings }>,
 ) => {
   const startMs = Date.now();
-  console.log("[users.approvePending] request received", {
-    method: c.req.method,
-    path: c.req.path,
-    timestamp: new Date().toISOString(),
-  });
+  console.log(
+    `[users.approvePending] request received ${JSON.stringify({ method: c.req.method, path: c.req.path, timestamp: new Date().toISOString() })}`,
+  );
 
   try {
     const reqWithUser = c.req as typeof c.req & Partial<AuthRequestUser>;
@@ -438,11 +414,9 @@ export const approvePendingUser = async (
       nowIso,
     });
 
-    console.log("[users.approvePending] success", {
-      approveeUserId: userId,
-      approverUserId,
-      durationMs: Date.now() - startMs,
-    });
+    console.log(
+      `[users.approvePending] success ${JSON.stringify({ approveeUserId: userId, approverUserId, durationMs: Date.now() - startMs })}`,
+    );
 
     return c.json(
       {
@@ -457,10 +431,9 @@ export const approvePendingUser = async (
       200,
     );
   } catch (error) {
-    console.error("[users.approvePending] failed", {
-      durationMs: Date.now() - startMs,
-      error,
-    });
+    console.error(
+      `[users.approvePending] failed ${JSON.stringify({ durationMs: Date.now() - startMs, error: String(error) })}`,
+    );
 
     if (error instanceof HTTPException) {
       throw error;
